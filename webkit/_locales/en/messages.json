@@ -1,0 +1,22 @@
+{
+   "extName":{
+   	"message":"Experium Plugin For Google Chrome",
+	"description": ""
+   },
+   "extDescription":{
+   	"message":"Experium HR-programm Plugin allow you to recive notifications.",
+	"description": ""
+   },
+   "extTitle":{
+   	"message":"Experium Notifications",
+	"description": ""
+   },
+   "project": {
+      "message": "New project",
+	"description": ""
+   },
+   "person": {
+      "message": "НNew person",
+	"description": ""
+   }
+}

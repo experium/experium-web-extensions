@@ -1,0 +1,22 @@
+{
+   "extName": {
+   	"message":"Расширение HR-программы Experium",
+	"description": ""
+   },
+   "extDescription": {
+   	"message":"Расширение позволяет получать уведомления риходящие в Web-интерфейс.",
+	"description": ""
+   },
+   "extTitle": {
+   	"message":"Уведомления Experium",
+	"description": ""
+   },
+   "project": {
+      "message": "Новый проект",
+	"description": ""
+   },
+   "person": {
+      "message": "Новый человек",
+	"description": ""
+   }
+}
