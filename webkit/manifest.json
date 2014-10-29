@@ -12,7 +12,7 @@
         "128": "icon_active.png"
     },
     "manifest_version": 2,
-	"permissions": [ "cookies","alarms", "tabs", "webNavigation","http://experium-interface.loc:9500/"],
+	"permissions": ["cookies","alarms", "tabs", "webNavigation","http://experium-interface.loc:9500/"],
     "background": {
         "page": "background.html",
         "persistent": false

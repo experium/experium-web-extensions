@@ -1,6 +1,6 @@
 var animationFrames = 36;
 var animationSpeed = 10;
-var requestTimeout = 1000 * 10;  // 10 seconds
+var requestTimer = 1000;
 var pollIntervalMin = 5;  // 5 minutes
 var pollIntervalMax = 60;  // 1 hour
 var rotation = 0;
@@ -25,7 +25,7 @@ function getLastId() {
 }
 
 function getUpdateUrl(type) {
-    switch(type){
+    switch (type){
         case 'project': return 'http://msmeta6.experium.ru/SupportSrv/SupportSrv.svc/Support/approval/project?inwork=1';
         case 'person':  return 'http://msmeta6.experium.ru/SupportSrv/SupportSrv.svc/Support/approval?inwork=1';
         default:        return false;
@@ -35,6 +35,10 @@ function getUpdateUrl(type) {
 
 function isExperiumUrl(url) {
   return url.indexOf(getExperiumUrl()) == 0;
+}
+
+function isExperiumNavigateUrl( url) {
+    return  url.indexOf(getExperiumUrl() + "#/approval/") == 0;
 }
 
 function LoadingAnimation() {
@@ -77,7 +81,7 @@ LoadingAnimation.prototype.stop = function() {
 }
 
 function goToIndex() {
-    if(!localStorage.hasOwnProperty('token')) {
+    if (!localStorage.hasOwnProperty('token')) {
         //chrome.tabs.create({url: getExperiumUrl()});
     }
 
@@ -97,9 +101,13 @@ function updateIcon() {
     if (!localStorage.token) {
         chrome.browserAction.setIcon({path: secureIcon});
         chrome.browserAction.setBadgeBackgroundColor({color:colorSecureBadge});
-        chrome.browserAction.setBadgeText({text:"?"});
+        chrome.browserAction.setBadgeText({text:"!"});
+        chrome.browserAction.setTitle({ title: chrome.i18n.getMessage("noToken") });
+        localStorage.personUnread = null;
+        localStorage.projectUnread = null;
     } else {
-        var count = (parseInt(localStorage.personUnread) || 0) + " " + (parseInt(localStorage.projectUnread) || 0);
+        chrome.browserAction.setTitle({ title: chrome.i18n.getMessage("extTitle") });
+        var count = (parseInt(localStorage.personUnread) || "-") + " " + (parseInt(localStorage.projectUnread) || "-");
         chrome.browserAction.setIcon({path: activeIcon});
         chrome.browserAction.setBadgeBackgroundColor({color:colorBadge});
         chrome.browserAction.setBadgeText({
@@ -135,51 +143,68 @@ function startRequest(params) {
     if (params && params.showLoadingAnimation)
         loadingAnimation.start();
 
-    checkToken();
+    checkToken(startLoad.bind(null,stopLoadingAnimation));
+}
 
-    if (localStorage.hasOwnProperty('token')) {
+function startLoad(stopLoadingAnimation) {
+    if (localStorage.hasOwnProperty('token') && localStorage.load == 0) {
+        var onSuccess = function (count,type) {
+            stopLoadingAnimation();
+            console.log('get '+count);
+            updateUnreadCount(count, type);
+            localStorage.load = (localStorage.load == 0)? 0: localStorage.load-1;
+        };
+
+        var onError = function () {
+            stopLoadingAnimation();
+            delete localStorage.projectUnread;
+            updateIcon();
+            localStorage.load = (localStorage.load == 0)? 0: localStorage.load-1;
+        };
+
+        localStorage.load = 2;
+
         getInboxCount(
-            function (count,type) {
-                stopLoadingAnimation();
-                updateUnreadCount(count, type);
-            },
-            function () {
-                stopLoadingAnimation();
-                delete localStorage.projectUnread;
-                updateIcon();
-            },
+            onSuccess,
+            onError,
             'project'
         );
+
         getInboxCount(
-            function (count,type) {
-                stopLoadingAnimation();
-                updateUnreadCount(count, type);
-            },
-            function () {
-                stopLoadingAnimation();
-                delete localStorage.personUnread;
-                updateIcon();
-            },
+            onSuccess,
+            onError,
             'person'
         );
-    } else {
+    } else if (localStorage.load == 0) { console.log('stop');
         stopLoadingAnimation();
         updateIcon();
+        if(!window.cheking) authCheck();
     }
 }
 
-
-function authenticate(login, password) {
-    var token = 'Basic ' + btoa(login + ':' + password);
+function restartRequest() {
+    if (localStorage.hasOwnProperty('token')) {
+        window.cheking = false;
+        startRequest({scheduleRequest: false, showLoadingAnimation:true});
+    } else {
+        setTimeout(authCheck,requestTimer);
+    }
 }
 
-function checkToken() {
+function authCheck() {
+    console.log('check');
+    window.cheking = true;
+    checkToken(restartRequest);
+}
+
+function checkToken(callback) {
     chrome.cookies.get({url: getExperiumUrl(),name: "token"}, function(cookie) {
         if (cookie) {
             localStorage.token = cookie.value;
         } else {
             delete localStorage.token;
         }
+        callback();
     });
 }
 
@@ -202,25 +227,16 @@ function drawIconAtRotation() {
 function getInboxCount(onSuccess, onError, type) {
     var xhr = new XMLHttpRequest();
 
-    var abortTimerId = window.setTimeout(function() {
-        xhr.abort();
-    }, requestTimeout);
-
-
     function handleSuccess(count) {
         localStorage.requestFailureCount = 0;
-        window.clearTimeout(abortTimerId);
         if (onSuccess)
             onSuccess(count,type);
     }
 
     var invokedErrorCallback = false;
-    function handleError(response) {
-        console.log(response);
+    function handleError() {
         ++localStorage.requestFailureCount;
-        if(localStorage.token)
-            delete localStorage.token;
-        window.clearTimeout(abortTimerId);
+        delete localStorage.token;
         if (onError && !invokedErrorCallback)
             onError();
         invokedErrorCallback = true;
@@ -242,7 +258,7 @@ function getInboxCount(onSuccess, onError, type) {
                 }
             }
 
-            handleError(xhr.getResponseHeader('STATUS'));
+            handleError();
         };
 
         xhr.onerror = function(error) {
@@ -252,7 +268,6 @@ function getInboxCount(onSuccess, onError, type) {
         xhr.setRequestHeader('Authorization', localStorage.token);
         xhr.send(null);
     } catch(e) {
-        console.error(chrome.i18n.getMessage("gmailcheck_exception", e));
         handleError();
     }
 }
@@ -283,6 +298,7 @@ function animateFlip() {
 
 function onInit() {
     localStorage.requestFailureCount = 0;  // used for exponential backoff
+    localStorage.load = 0;
     startRequest({scheduleRequest:true, showLoadingAnimation:true});
     if (!oldChromeVersion) {
         // TODO(mpcomplete): We should be able to remove this now, but leaving it
@@ -329,6 +345,7 @@ function onNavigate(details) {
         startRequest({scheduleRequest:false, showLoadingAnimation:false});
     }
 }
+
 if (chrome.webNavigation && chrome.webNavigation.onDOMContentLoaded &&
     chrome.webNavigation.onReferenceFragmentUpdated) {
     chrome.webNavigation.onDOMContentLoaded.addListener(onNavigate, filters);

@@ -1,14 +1,14 @@
 {
    "extName":{
-   	"message":"Experium Plugin For Google Chrome",
+   	"message":"Experium HR-network Plugin For Google Chrome",
 	"description": ""
    },
    "extDescription":{
-   	"message":"Experium HR-programm Plugin allow you to recive notifications.",
+   	"message":"Experium HR-network Plugin allow you to recive notifications.",
 	"description": ""
    },
    "extTitle":{
-   	"message":"Experium Notifications",
+   	"message":"Experium HR-network Notifications",
 	"description": ""
    },
    "project": {
@@ -18,5 +18,9 @@
    "person": {
       "message": "НNew person",
 	"description": ""
-   }
+   },
+    "noToken": {
+        "message":"Log In to Experium HR-network",
+        "description": ""
+    }
 }

@@ -1,14 +1,14 @@
 {
    "extName": {
-   	"message":"Расширение HR-программы Experium",
+   	"message":"Расширение HR-сети Experium",
 	"description": ""
    },
    "extDescription": {
-   	"message":"Расширение позволяет получать уведомления риходящие в Web-интерфейс.",
+   	"message":"Расширение HR-сети Experium позволяет получать уведомления.",
 	"description": ""
    },
    "extTitle": {
-   	"message":"Уведомления Experium",
+   	"message":"Уведомления HR-сети Experium",
 	"description": ""
    },
    "project": {
@@ -18,5 +18,9 @@
    "person": {
       "message": "Новый человек",
 	"description": ""
-   }
+   },
+    "noToken": {
+        "message":"Авторизуйтесь в HR-сети Experium",
+        "description": ""
+    }
 }
