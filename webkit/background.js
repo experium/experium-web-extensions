@@ -150,7 +150,6 @@ function startLoad(stopLoadingAnimation) {
     if (localStorage.hasOwnProperty('token') && localStorage.load == 0) {
         var onSuccess = function (count,type) {
             stopLoadingAnimation();
-            console.log('get '+count);
             updateUnreadCount(count, type);
             localStorage.load = (localStorage.load == 0)? 0: localStorage.load-1;
         };
@@ -175,7 +174,7 @@ function startLoad(stopLoadingAnimation) {
             onError,
             'person'
         );
-    } else if (localStorage.load == 0) { console.log('stop');
+    } else if (localStorage.load == 0) {
         stopLoadingAnimation();
         updateIcon();
         if(!window.cheking) authCheck();
@@ -192,7 +191,6 @@ function restartRequest() {
 }
 
 function authCheck() {
-    console.log('check');
     window.cheking = true;
     checkToken(restartRequest);
 }
@@ -253,8 +251,6 @@ function getInboxCount(onSuccess, onError, type) {
                 if (response.length) {
                     handleSuccess(response.length);
                     return;
-                } else {
-                    console.error(chrome.i18n.getMessage("gmailcheck_node_error"));
                 }
             }
 
@@ -308,7 +304,6 @@ function onInit() {
 }
 
 function onAlarm(alarm) {
-    console.log('Got alarm', alarm);
     if (alarm && alarm.name == 'watchdog') {
         onWatchdog();
     } else {
@@ -340,8 +335,6 @@ var filters = {
 
 function onNavigate(details) {
     if (details.url && isExperiumUrl(details.url)) {
-        console.log('Recognized Gmail navigation to: ' + details.url + '.' +
-            'Refreshing count...');
         startRequest({scheduleRequest:false, showLoadingAnimation:false});
     }
 }
