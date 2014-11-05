@@ -4,7 +4,7 @@
 	"description": ""
    },
    "extDescription":{
-   	"message":"Experium HR-network Plugin allow you to recive notifications.",
+   	"message":"Experium HR-network Plugin allow you to receive notifications.",
 	"description": ""
    },
    "extTitle":{
@@ -16,7 +16,7 @@
 	"description": ""
    },
    "person": {
-      "message": "НNew person",
+      "message": "New person",
 	"description": ""
    },
     "noToken": {

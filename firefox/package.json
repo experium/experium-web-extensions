@@ -1,0 +1,29 @@
+{
+    "preferences": [
+        {
+            "type": "string",
+            "name": "baseUrl",
+            "value": "experium-interface.loc:9500/#/",
+            "title": "Experium Url"
+        },
+        {
+            "type": "string",
+            "name": "serverUrl",
+            "value": "http://msmeta6.experium.ru/SupportSrv/SupportSrv.svc/Support/",
+            "title": "Experium Server Url"
+        },
+        {
+            "type": "integer",
+            "name": "requestTimer",
+            "value": 5,
+            "title": "Experium Server Update"
+        }
+    ],
+    "name": "experium-addon",
+  "title": "experium-addon",
+  "id": "jid1-Djoid8yZzKsqlQ",
+  "description": "Experium HR-network Addon",
+  "author": "",
+  "license": "MPL 2.0",
+  "version": "0.1"
+}

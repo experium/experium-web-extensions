@@ -1,0 +1,67 @@
+#experium-bar .img-class{
+    width: 18px;
+}
+
+#experium-bar .img-class[type="active"]{
+    list-style-image: url('./icon_active.png') !important;
+}
+
+#experium-bar .img-class[type="secure"] {
+    list-style-image: url('./icon_secure.png') !important;
+}
+
+#experium-bar .span-counter {
+    border: 1px solid #666;
+    color: white;
+    font-size: 9px;
+    font-weight: bold;
+    padding: 1px 1px;
+    border-radius:3px;
+    box-shadow:0px 0px 1px rgba(0,0,0,0.5);
+    position: absolute;
+    right: -6px;
+    bottom: -7px;
+    line-height:9px;
+}
+
+.span-counter[type="secure"] {
+    background-image: -moz-linear-gradient(
+    center bottom,
+    #454545 0%,
+    #7b7b7b 80%,
+    #7b7b7b 81%
+    );
+}
+
+.span-counter[type="active"] {
+    background-image: -moz-linear-gradient(
+            center bottom,
+            #194c88 0%,
+            #238dca 80%,
+            #238dca 81%
+    );
+}
+
+
+#experium-bar .div-cont {
+    position: relative;
+    width: 25px;
+    height: 20px;
+    margin-left: -25px;
+}
+
+#experium-bar {
+    position: relative !important;
+    padding: 0;
+}
+
+#experium-bar.toolbarbutton-1{
+    position: relative !important;
+    padding: 0;
+
+}
+
+#experium-bar.toolbarbutton-box{
+    position: relative !important;
+    padding: 0;
+}
