@@ -30,7 +30,6 @@ function getUpdateUrl(type) {
         case 'person':  return 'http://msmeta6.experium.ru/SupportSrv/SupportSrv.svc/Support/approval?inwork=1';
         default:        return false;
     }
-
 }
 
 function isExperiumUrl(url) {
@@ -82,7 +81,7 @@ LoadingAnimation.prototype.stop = function() {
 
 function goToIndex() {
     if (!localStorage.hasOwnProperty('token')) {
-        //chrome.tabs.create({url: getExperiumUrl()});
+        //TODO meassage
     }
 
     chrome.tabs.getAllInWindow(undefined, function(tabs) {
@@ -107,7 +106,7 @@ function updateIcon() {
         localStorage.projectUnread = null;
     } else {
         chrome.browserAction.setTitle({ title: chrome.i18n.getMessage("extTitle") });
-        var count = (parseInt(localStorage.personUnread) || "-") + " " + (parseInt(localStorage.projectUnread) || "-");
+        var count = (parseInt(localStorage.personUnread) || "_") + " " + (parseInt(localStorage.projectUnread) || "_");
         chrome.browserAction.setIcon({path: activeIcon});
         chrome.browserAction.setBadgeBackgroundColor({color:colorBadge});
         chrome.browserAction.setBadgeText({
@@ -148,15 +147,15 @@ function startRequest(params) {
 
 function startLoad(stopLoadingAnimation) {
     if (localStorage.hasOwnProperty('token') && localStorage.load == 0) {
-        var onSuccess = function (count,type) {
+        var onSuccess = function (count,type,response) {
             stopLoadingAnimation();
             updateUnreadCount(count, type);
+            //TODO message if response
             localStorage.load = (localStorage.load == 0)? 0: localStorage.load-1;
         };
 
-        var onError = function () {
+        var onError = function (type) {
             stopLoadingAnimation();
-            delete localStorage.projectUnread;
             updateIcon();
             localStorage.load = (localStorage.load == 0)? 0: localStorage.load-1;
         };
@@ -225,10 +224,10 @@ function drawIconAtRotation() {
 function getInboxCount(onSuccess, onError, type) {
     var xhr = new XMLHttpRequest();
 
-    function handleSuccess(count) {
+    function handleSuccess(count,response) {
         localStorage.requestFailureCount = 0;
         if (onSuccess)
-            onSuccess(count,type);
+            onSuccess(count,type,response);
     }
 
     var invokedErrorCallback = false;
@@ -236,8 +235,9 @@ function getInboxCount(onSuccess, onError, type) {
         ++localStorage.requestFailureCount;
         delete localStorage.token;
         if (onError && !invokedErrorCallback)
-            onError();
+            onError(type);
         invokedErrorCallback = true;
+        restartRequest();
     }
 
     try {
@@ -249,7 +249,7 @@ function getInboxCount(onSuccess, onError, type) {
                 var response = JSON.parse(xhr.response);
 
                 if (response.length) {
-                    handleSuccess(response.length);
+                    handleSuccess(response.length,response);
                     return;
                 }
             }
@@ -272,8 +272,9 @@ function updateUnreadCount(count, type) {
     var changed = localStorage[type+'Unread'] != count;
     localStorage[type+'Unread'] = count;
     updateIcon();
-    if (changed)
+    if (changed) {
         animateFlip();
+    }
 }
 
 function ease(x) {
