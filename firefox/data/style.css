@@ -22,6 +22,7 @@
     right: -6px;
     bottom: -7px;
     line-height:9px;
+    white-space: pre-wrap;
 }
 
 .span-counter[type="secure"] {

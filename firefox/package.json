@@ -17,12 +17,20 @@
             "name": "requestTimer",
             "value": 5,
             "title": "Experium Server Update"
+        },
+        {
+          "type": "bool",
+          "name": "showMessages",
+          "value": true,
+          "title": "Experium Server Notifications"
         }
+
     ],
-    "name": "experium-addon",
-  "title": "experium-addon",
+  "fullName": "Experium Add-on",
+  "name": "experium-addon",
+  "title": "Experium Add-on",
   "id": "jid1-Djoid8yZzKsqlQ",
-  "description": "Experium HR-network Addon",
+  "description": "Experium HR-network Add-on",
   "author": "",
   "license": "MPL 2.0",
   "version": "0.1"

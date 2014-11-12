@@ -27,7 +27,7 @@ exports.ToolbarButton = function ToolbarButton(options) {
             let $ = function(id) doc.getElementById(id);
 
             options.tooltiptext = options.tooltiptext || '';
-            options.badge = options.badge || '!';
+            options.badge = options.badge || '';
 
 // create toolbar button
             let stack = doc.createElementNS(NS_XUL, "stack");
@@ -49,10 +49,6 @@ exports.ToolbarButton = function ToolbarButton(options) {
             badge.setAttribute("class", "span-counter");
 
             stack.appendChild(box);
-           // stack.appendChild(svg);
-
-
-
 
             let tbb = doc.createElementNS(NS_XUL, "toolbarbutton");
             tbb.setAttribute("id", options.id);
