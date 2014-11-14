@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Experium HR-network Plugin Settings</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
+        <style>
+            .settings-template {
+                margin-top: 70px;
+            }
+
+
+        </style>
+    </head>
+    <body>
+        <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="#" id="title"></a>
+                </div>
+            </div>
+        </nav>
+        <div class="container settings-template">
+            <div id="baseUrl_group" class="form-group">
+                <label id="baseUrl_title" for="baseUrl"></label>
+                <input type="text" id="baseUrl" name="baseUrl" class="form-control">
+            </div>
+            <div id="serverUrl_group" class="form-group">
+                <label id="serverUrl_title" for="baseUrl"></label>
+                <input type="text" id="serverUrl" name="serverUrl" class="form-control">
+            </div>
+            <div id="updateTimer_group" class="form-group">
+                <label id="updateTimer_title" for="updateTimer"></label>
+                <input type="number" id="updateTimer" name="updateTimer" class="form-control ">
+            </div>
+            <div class="checkbox">
+                <label for="showMessages">
+                    <input type="checkbox" id="showMessages" name="showMessages" >
+                    <span id="showMessages_title"></span>
+                </label>
+            </div>
+
+            <div class="text-center">
+                <p>
+                    <button id="saveButton" class="btn btn-primary"></button>
+                    <button id="defaultsButton" class="btn"></button>
+                </p>
+                <span id="status"></span>
+            </div>
+        </div>
+
+        <script src="config.js"></script>
+        <script src="options.js"></script>
+    </body>
+</html>

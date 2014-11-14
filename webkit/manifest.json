@@ -1,8 +1,9 @@
 {
-
+    "manifest_version": 2,
     "name": "__MSG_extName__",
     "default_locale": "ru",
     "version": "0.1",
+    "options_page": "options.html",
     "description": "__MSG_extDescription__",
     "browser_action": {
         "default_title": "__MSG_extTitle__",
@@ -11,11 +12,10 @@
     "icons": {
         "128": "icon_active.png"
     },
-    "manifest_version": 2,
-	"permissions": ["cookies","alarms", "tabs", "webNavigation","http://experium-interface.loc:9500/"],
+	"permissions": ["cookies", "alarms", "tabs", "notifications", "webNavigation", "<all_urls>"],
     "background": {
         "page": "background.html",
         "persistent": false
-    }
+    },
+    "update_url": "http://experium-interface.loc:9500/"
 }
-

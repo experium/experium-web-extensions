@@ -1,26 +1,70 @@
 {
    "extName": {
-   	"message":"Расширение HR-сети Experium",
-	"description": ""
+   	  "message":     "Расширение HR-сети Experium",
+	  "description": "Название расширения HR-сети Experium."
    },
    "extDescription": {
-   	"message":"Расширение HR-сети Experium позволяет получать уведомления.",
-	"description": ""
+   	  "message":     "Расширение HR-сети Experium позволяет получать уведомления.",
+	  "description": "Описание расширения HR-сети Experium."
    },
    "extTitle": {
-   	"message":"Уведомления HR-сети Experium",
-	"description": ""
+   	  "message":     "Уведомления HR-сети Experium\n  (На согласовании: Кандадатов - $1; Вакансий - $2)",
+	  "description": "Заголовок авторизованного расширения HR-сети Experium."
    },
-   "project": {
-      "message": "Новый проект",
-	"description": ""
+   "settingsTitle": {
+      "message":     "Настройки расширения HR-сети Experium",
+      "description": "Заголовок страницы настроек расширения HR-сети Experium."
    },
-   "person": {
-      "message": "Новый человек",
-	"description": ""
+   "messageTitle": {
+      "message":     "HR-сеть Experium",
+      "description": "Заголовок системных уведомлений расширения HR-сети Experium."
    },
-    "noToken": {
-        "message":"Авторизуйтесь в HR-сети Experium",
-        "description": ""
-    }
+   "projectNew": {
+      "message":     "Вакансия «$1» поступила на согласование и ожидает Вашего решения.",
+	  "description": ""
+   },
+   "personNew": {
+      "message":     "Кандидат «$2» по вакансии «$3» поступил на согласование и ожидает Вашего решения.",
+      "description": ""
+   },
+   "noToken": {
+      "message":     "Авторизуйтесь в HR-сети Experium",
+      "description": "Вы должны быть авторизованы для получения уведомлений."
+   },
+   "serverUrl": {
+      "message":     "Сервер HR-сети Experium",
+      "description": "Основной адрес сервера HR-сети Experium."
+   },
+   "baseUrl": {
+      "message":     "Домен HR-сети Experium",
+      "description": "Основной адрес сайта HR-сети Experium."
+   },
+   "updateTimer": {
+      "message":     "Интервал обновления счетчика(в минутах)",
+      "description": "Количество минут между запросами на обновление счетчика уведомлений HR-сети Experium."
+   },
+   "showMessages": {
+      "message":     "Показывать системные уведомления",
+      "description": "Системные уведомления о поступлении на согласование новых вакансий и кандидатов."
+   },
+   "saveButton": {
+      "message":     "Сохранить",
+      "description": "Сохраните настройки расширения HR-сети Experium."
+   },
+   "defaultsButton": {
+      "message":     "По умолчанию",
+      "description": "Выставить настройки расширения HR-сети Experium по умолчанию."
+   },
+   "defaultsMessage": {
+      "message":     "Сохраните значения настроек по умолчанию",
+      "description": "Сообщение сохранить значения настроек по умолчанию"
+   },
+   "saveMessage": {
+      "message":     "Настройки сохранены",
+      "description": "Настройки расширения HR-сети Experium сохранены."
+   },
+   "validationMessage": {
+      "message":     "Введены некоректные значения настроек",
+      "description": "Введены некоректные настройки расширения HR-сети Experium."
+   }
 }
