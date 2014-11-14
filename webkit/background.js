@@ -1,23 +1,51 @@
 var animationFrames = 36;
 var animationSpeed = 10;
-var requestTimer = 1000;
-var pollIntervalMin = 5;  // 5 minutes
-var pollIntervalMax = 60;  // 1 hour
+var requestTimer = 3000;
 var rotation = 0;
 var loadingAnimation = new LoadingAnimation();
 
 var canvas = document.getElementById('canvas');
 var loggedInImage = document.getElementById('logged_in');
 var canvasContext = canvas.getContext('2d');
-var oldChromeVersion = !chrome.runtime;
+
+var onClickRedirect = {};
+var typesConfig = {
+    person: {
+        link: "#/approval/person/",
+        query: "approval?inwork=1",
+        notyText: function(data) {
+            return chrome.i18n.getMessage("projectNew", [nameFilter(data,true), data.projectName]);
+        }
+    },
+    project: {
+        link: "#/approval/project/",
+        query: "approval/project?inwork=1",
+        notyText: function(data) {
+            return chrome.i18n.getMessage("projectNew", [data.position]);
+        }
+    }
+};
 
 var activeIcon = "icon_active.png";
 var secureIcon = "icon_secure.png";
 var colorBadge = "#2598d5";
 var colorSecureBadge = "#bfbfbf";
 
+function getExperiumUpdateTimer() {
+    return (localStorage.updateTimer || config.updateTimer) * 60 * 1000;
+}
+
 function getExperiumUrl() {
-  return "http://experium-interface.loc:9500/";
+    return localStorage.baseUrl || config.baseUrl;
+}
+
+function getExperiumServerUrl() {
+    return localStorage.serverUrl || config.serverUrl;
+}
+
+function getExperiumShowMessages() {
+    var checked = localStorage.showMessages || config.showMessages;
+    return checked === 'true';
 }
 
 function getLastId() {
@@ -25,18 +53,26 @@ function getLastId() {
 }
 
 function getUpdateUrl(type) {
-    switch (type){
-        case 'project': return 'http://msmeta6.experium.ru/SupportSrv/SupportSrv.svc/Support/approval/project?inwork=1';
-        case 'person':  return 'http://msmeta6.experium.ru/SupportSrv/SupportSrv.svc/Support/approval?inwork=1';
-        default:        return false;
-    }
+    return getExperiumServerUrl() + typesConfig[type].query;
+}
+
+function getRedirectController(type) {
+    return getExperiumUrl() + typesConfig[type].link;
+}
+
+function getTranslateMessage(type, data) {
+    return typesConfig[type].notyText(data);
+}
+
+function nameFilter(data) {
+    return data.lastName + " " + data.middleName + " " + data.firstName;
 }
 
 function isExperiumUrl(url) {
   return url.indexOf(getExperiumUrl()) == 0;
 }
 
-function isExperiumNavigateUrl( url) {
+function isExperiumNavigateUrl(url) {
     return  url.indexOf(getExperiumUrl() + "#/approval/") == 0;
 }
 
@@ -54,7 +90,7 @@ LoadingAnimation.prototype.paintFrame = function() {
     }
     if (this.current_ >= this.maxDot_)
         text += "";
-    chrome.browserAction.setBadgeBackgroundColor({color:colorSecureBadge});
+
     chrome.browserAction.setBadgeText({text:text});
     this.current_++;
     if (this.current_ == this.maxCount_)
@@ -80,202 +116,281 @@ LoadingAnimation.prototype.stop = function() {
 }
 
 function goToIndex() {
-    if (!localStorage.hasOwnProperty('token')) {
-        //TODO meassage
-    }
-
     chrome.tabs.getAllInWindow(undefined, function(tabs) {
         for (var i = 0, tab; tab = tabs[i]; i++) {
             if (tab.url && isExperiumUrl(tab.url)) {
                 chrome.tabs.update(tab.id, {selected: true});
-                startRequest({scheduleRequest:false, showLoadingAnimation:false});
+                startRequest(false);
                 return;
             }
         }
-        chrome.tabs.create({url: getExperiumUrl()});
+        chrome.tabs.create({
+            url: getExperiumUrl()
+        });
     });
 }
 
-function updateIcon() {
-    if (!localStorage.token) {
-        chrome.browserAction.setIcon({path: secureIcon});
-        chrome.browserAction.setBadgeBackgroundColor({color:colorSecureBadge});
-        chrome.browserAction.setBadgeText({text:"!"});
-        chrome.browserAction.setTitle({ title: chrome.i18n.getMessage("noToken") });
-        localStorage.personUnread = null;
-        localStorage.projectUnread = null;
-    } else {
-        chrome.browserAction.setTitle({ title: chrome.i18n.getMessage("extTitle") });
+
+function updateIcon(noError) {
+    if (noError) {
+        chrome.browserAction.setTitle({
+            title: chrome.i18n.getMessage("extTitle", [(parseInt(localStorage.personUnread) || "_"), (parseInt(localStorage.projectUnread) || "_")])
+        });
         var count = (parseInt(localStorage.personUnread) || "_") + " " + (parseInt(localStorage.projectUnread) || "_");
-        chrome.browserAction.setIcon({path: activeIcon});
-        chrome.browserAction.setBadgeBackgroundColor({color:colorBadge});
+        chrome.browserAction.setIcon({
+            path: activeIcon
+        });
+        chrome.browserAction.setBadgeBackgroundColor({
+            color:colorBadge
+        });
         chrome.browserAction.setBadgeText({
             text:  count  != 0 ? count.toString() : ""
+        });
+    } else {
+        chrome.browserAction.setIcon({
+            path: secureIcon
+        });
+        chrome.browserAction.setBadgeBackgroundColor({
+            color: colorSecureBadge
+        });
+        chrome.browserAction.setTitle({
+            title: chrome.i18n.getMessage("noToken")
+        });
+        chrome.browserAction.setBadgeText({
+            text: "!"
         });
     }
 }
 
-function scheduleRequest() {
-    var randomness = Math.random() * 2;
-    var exponent = Math.pow(2, localStorage.requestFailureCount || 0);
-    var multiplier = Math.max(randomness * exponent, 1);
-    var delay = Math.min(multiplier * pollIntervalMin, pollIntervalMax);
-    delay = Math.round(delay);
-
-    if (oldChromeVersion) {
-        if (requestTimerId) {
-            window.clearTimeout(requestTimerId);
-        }
-        requestTimerId = window.setTimeout(onAlarm, delay*60*1000);
-    } else {
-        chrome.alarms.create('refresh', {periodInMinutes: delay});
-    }
-}
-
-function startRequest(params) {
-    if (params && params.scheduleRequest) scheduleRequest();
-
+function startRequest(showAnimation) {
     function stopLoadingAnimation() {
-        if (params && params.showLoadingAnimation) loadingAnimation.stop();
+        if (showAnimation) loadingAnimation.stop();
     }
 
-    if (params && params.showLoadingAnimation)
+    if (showAnimation) {
         loadingAnimation.start();
+    }
 
     checkToken(startLoad.bind(null,stopLoadingAnimation));
 }
 
 function startLoad(stopLoadingAnimation) {
-    if (localStorage.hasOwnProperty('token') && localStorage.load == 0) {
-        var onSuccess = function (count,type,response) {
-            stopLoadingAnimation();
-            updateUnreadCount(count, type);
-            //TODO message if response
-            localStorage.load = (localStorage.load == 0)? 0: localStorage.load-1;
-        };
+    if (localStorage.hasOwnProperty('token')) {
+        if (localStorage.load == 0) {
+            var onSuccess = function (count, type, response) {
+                stopLoadingAnimation();
+                updateUnreadCount(count, type);
+                updateUnreadLast(response, type);
+                localStorage.load = (localStorage.load == 0) ? 0 : localStorage.load - 1;
 
-        var onError = function (type) {
-            stopLoadingAnimation();
-            updateIcon();
-            localStorage.load = (localStorage.load == 0)? 0: localStorage.load-1;
-        };
+                if(localStorage.load == 0) {
+                    restartTimer(getExperiumUpdateTimer());
+                }
 
-        localStorage.load = 2;
+                updateIcon(true);
+            };
 
-        getInboxCount(
-            onSuccess,
-            onError,
-            'project'
-        );
+            var onError = function (type, isAuth) {
+                stopLoadingAnimation();
+                updateIcon(false);
+                localStorage.load = (localStorage.load == 0) ? 0 : localStorage.load - 1;
+                if (localStorage.load == 0) {
+                    if (isAuth && localStorage.load == 0) {
+                        restartTimer(requestTimer * ((localStorage.requestFailureCount > 10)? 10:localStorage.requestFailureCount));
+                    } else {
+                        restartTimer(requestTimer);
+                    }
+                }
+            };
 
-        getInboxCount(
-            onSuccess,
-            onError,
-            'person'
-        );
-    } else if (localStorage.load == 0) {
+            localStorage.load = 2;
+            getInboxCount(onSuccess, onError, 'project');
+            getInboxCount(onSuccess, onError, 'person');
+        }
+    } else {
         stopLoadingAnimation();
-        updateIcon();
-        if(!window.cheking) authCheck();
+        updateIcon(false);
+        if (!localStorage.checking) {
+            authCheck();
+        }
     }
+}
+
+function restartTimer(time) {
+    if (localStorage.timeoutId) {
+        clearTimeout(localStorage.timeoutId);
+        delete localStorage.timeoutId;
+    }
+    localStorage.timeoutId = setTimeout(restartRequest, time);
 }
 
 function restartRequest() {
     if (localStorage.hasOwnProperty('token')) {
-        window.cheking = false;
-        startRequest({scheduleRequest: false, showLoadingAnimation:true});
+       delete localStorage.checking;
+        startRequest(true);
     } else {
-        setTimeout(authCheck,requestTimer);
+        if (localStorage.timeoutId) {
+            clearTimeout(localStorage.timeoutId);
+            delete localStorage.timeoutId;
+        }
+        localStorage.timeoutId = setTimeout(authCheck, requestTimer);
     }
 }
 
 function authCheck() {
-    window.cheking = true;
+    localStorage.checking = true;
     checkToken(restartRequest);
 }
 
 function checkToken(callback) {
-    chrome.cookies.get({url: getExperiumUrl(),name: "token"}, function(cookie) {
-        if (cookie) {
-            localStorage.token = cookie.value;
-        } else {
-            delete localStorage.token;
-        }
-        callback();
-    });
+    try {
+        chrome.cookies.get({url: getExperiumUrl(), name: "token"}, function (cookie) {
+            if (cookie) {
+                localStorage.token = cookie.value;
+            } else {
+                delete localStorage.token;
+            }
+            callback();
+        });
+    } catch (e) {
+        console.log('Wrong url');
+    }
 }
 
 function drawIconAtRotation() {
     canvasContext.save();
     canvasContext.clearRect(0, 0, canvas.width, canvas.height);
     canvasContext.translate(
-        Math.ceil(canvas.width/2),
-        Math.ceil(canvas.height/2));
-    canvasContext.rotate(2*Math.PI*ease(rotation));
+        Math.ceil(canvas.width / 2),
+        Math.ceil(canvas.height / 2));
+    canvasContext.rotate(2 * Math.PI * ease(rotation));
     canvasContext.drawImage(loggedInImage,
-        -Math.ceil(canvas.width/2),
-        -Math.ceil(canvas.height/2));
+        -Math.ceil(canvas.width / 2),
+        -Math.ceil(canvas.height / 2));
     canvasContext.restore();
 
-    chrome.browserAction.setIcon({imageData:canvasContext.getImageData(0, 0,
-        canvas.width,canvas.height)});
+    chrome.browserAction.setIcon({
+        imageData:canvasContext.getImageData(0, 0, canvas.width, canvas.height)
+    });
 }
 
 function getInboxCount(onSuccess, onError, type) {
     var xhr = new XMLHttpRequest();
 
-    function handleSuccess(count,response) {
+    function handleSuccess(count, response) {
         localStorage.requestFailureCount = 0;
-        if (onSuccess)
+        if (onSuccess) {
             onSuccess(count,type,response);
+        }
     }
 
     var invokedErrorCallback = false;
-    function handleError() {
+    function handleError(status) {
         ++localStorage.requestFailureCount;
         delete localStorage.token;
-        if (onError && !invokedErrorCallback)
-            onError(type);
+        var isAuth = true;
+        if (status == 401 || status == 403) {
+            isAuth = false;
+        }
+
+        if (onError && !invokedErrorCallback) {
+            onError(type, isAuth);
+        }
+
         invokedErrorCallback = true;
-        restartRequest();
     }
 
     try {
         xhr.onreadystatechange = function() {
             if (xhr.readyState != 4)
                 return;
-
             if (xhr.response) {
                 var response = JSON.parse(xhr.response);
 
                 if (response.length) {
-                    handleSuccess(response.length,response);
+                    handleSuccess(response.length, response);
                     return;
                 }
             }
 
-            handleError();
+            handleError(xhr.status);
         };
 
         xhr.onerror = function(error) {
-            handleError();
+            handleError(error.status);
         };
         xhr.open("GET", getUpdateUrl(type), true);
         xhr.setRequestHeader('Authorization', localStorage.token);
         xhr.send(null);
     } catch(e) {
-        handleError();
+        handleError(0);
     }
 }
 
 function updateUnreadCount(count, type) {
-    var changed = localStorage[type+'Unread'] != count;
-    localStorage[type+'Unread'] = count;
-    updateIcon();
-    if (changed) {
+    var changed = localStorage[type + 'Unread'] != count;
+    if (localStorage.hasOwnProperty(type + 'Unread') && changed) {
         animateFlip();
     }
+
+    localStorage[type + 'Unread'] = count;
 }
+
+function updateUnreadLast(response, type) {
+    var last = 0;
+    for (var key in response) {
+        if (response.hasOwnProperty(key)) {
+            if (localStorage.hasOwnProperty(type + 'UnreadLast') && response[key].id > localStorage[type + 'UnreadLast']) {
+                showMessage(response[key], type);
+            }
+            last = response[key].id;
+        }
+    }
+
+    localStorage[type + 'UnreadLast'] = last;
+}
+
+function showMessage(data, type) {
+    var redirect = function (id, type) {
+        var link = getRedirectController(type) + id;
+        chrome.tabs.getAllInWindow(undefined, function(tabs) {
+            for (var i = 0, tab; tab = tabs[i]; i++) {
+                if (tab.url && isExperiumUrl(tab.url)) {
+                    chrome.tabs.update(tab.id, {selected: true, url: link});
+                    return;
+                }
+            }
+            chrome.tabs.create({url: link});
+        });
+        delete onClickRedirect[id];
+    };
+
+    chrome.tabs.getAllInWindow(undefined, function(tabs) {
+        for (var i = 0, tab; tab = tabs[i]; i++) {
+            if (tab.url && isExperiumUrl(tab.url) && tab.active) {
+                return;
+            }
+        }
+
+        if (getExperiumShowMessages() && chrome.notifications) {
+            chrome.notifications.create(data.id.toString(),
+                {
+                    type:    "basic",
+                    iconUrl: "icon_message.png",
+                    title:   chrome.i18n.getMessage(""),
+                    message: getTranslateMessage(type, data)
+                },
+                function (id) {
+                    onClickRedirect[id] = redirect.bind(this, data.id, type);
+                }
+            );
+        }
+    });
+}
+
+chrome.notifications.onClicked.addListener(function(id) {
+    onClickRedirect[id]();
+});
 
 function ease(x) {
     return (1-Math.sin(Math.PI/2+x*Math.PI))/2;
@@ -294,39 +409,14 @@ function animateFlip() {
 }
 
 function onInit() {
-    localStorage.requestFailureCount = 0;  // used for exponential backoff
+    localStorage.requestFailureCount = 0;
     localStorage.load = 0;
-    startRequest({scheduleRequest:true, showLoadingAnimation:true});
-    if (!oldChromeVersion) {
-        // TODO(mpcomplete): We should be able to remove this now, but leaving it
-        // for a little while just to be sure the refresh alarm is working nicely.
-        chrome.alarms.create('watchdog', {periodInMinutes:5});
-    }
+    delete localStorage.checking;
+    updateIcon(false);
+    startRequest(true);
 }
 
-function onAlarm(alarm) {
-    if (alarm && alarm.name == 'watchdog') {
-        onWatchdog();
-    } else {
-        startRequest({scheduleRequest:true, showLoadingAnimation:false});
-    }
-}
-
-function onWatchdog() {
-    chrome.alarms.get('refresh', function(alarm) {
-        if (!alarm) {
-            startRequest({scheduleRequest:true, showLoadingAnimation:false});
-        }
-    });
-}
-
-if (oldChromeVersion) {
-    updateIcon();
-    onInit();
-} else {
-    chrome.runtime.onInstalled.addListener(onInit);
-    chrome.alarms.onAlarm.addListener(onAlarm);
-}
+onInit();
 
 var filters = {
     // TODO(aa): Cannot use urlPrefix because all the url fields lack the protocol
@@ -336,7 +426,7 @@ var filters = {
 
 function onNavigate(details) {
     if (details.url && isExperiumUrl(details.url)) {
-        startRequest({scheduleRequest:false, showLoadingAnimation:false});
+        startRequest(false);
     }
 }
 
@@ -346,7 +436,7 @@ if (chrome.webNavigation && chrome.webNavigation.onDOMContentLoaded &&
     chrome.webNavigation.onReferenceFragmentUpdated.addListener(
         onNavigate, filters);
 } else {
-    chrome.tabs.onUpdated.addListener(function(_, details) {
+    chrome.tabs.onUpdated.addListener( function(_, details) {
         onNavigate(details);
     });
 }
@@ -354,13 +444,7 @@ if (chrome.webNavigation && chrome.webNavigation.onDOMContentLoaded &&
 chrome.browserAction.onClicked.addListener(goToIndex);
 
 if (chrome.runtime && chrome.runtime.onStartup) {
-  chrome.runtime.onStartup.addListener(function() {
-    startRequest({scheduleRequest:false, showLoadingAnimation:false});
-    updateIcon();
-  });
-} else {
-  chrome.windows.onCreated.addListener(function() {
-    startRequest({scheduleRequest:false, showLoadingAnimation:false});
-    updateIcon();
+  chrome.runtime.onStartup.addListener( function() {
+      onInit();
   });
 }

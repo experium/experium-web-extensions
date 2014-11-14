@@ -1,26 +1,70 @@
 {
-   "extName":{
-   	"message":"Experium HR-network Plugin For Google Chrome",
-	"description": ""
-   },
-   "extDescription":{
-   	"message":"Experium HR-network Plugin allow you to receive notifications.",
-	"description": ""
-   },
-   "extTitle":{
-   	"message":"Experium HR-network Notifications",
-	"description": ""
-   },
-   "project": {
-      "message": "New project",
-	"description": ""
-   },
-   "person": {
-      "message": "New person",
-	"description": ""
-   },
-    "noToken": {
-        "message":"Log In to Experium HR-network",
-        "description": ""
-    }
+  "extName":{
+    "message":     "Experium HR-network extension",
+    "description": "Experium HR-network extension name."
+  },
+  "extDescription":{
+    "message":     "Experium HR-network extension allow you to receive notifications.",
+    "description": "Experium HR-network extension description."
+  },
+  "extTitle":{
+    "message":     "Experium HR-network notifications\n (On approval: Candidates - $1; Vacancies - $2)",
+    "description": "Experium HR-network extension authorized title."
+  },
+  "settingsTitle": {
+    "message":     "Experium HR-network extension settings",
+    "description": "Title for settings page of Experium HR-network extension"
+  },
+  "settingsTitle": {
+    "message":     "Experium HR-network extension settings",
+    "description": "Message title for notifications of Experium HR-network extension"
+  },
+  "projectNew": {
+    "message":     "The vacancy «$1» received for approval and is waiting for your decision.",
+    "description": ""
+  },
+  "personNew": {
+    "message":     "The candidate «$2» on the vacancy «$3» received for approval and is waiting for your decision.",
+    "description": ""
+  },
+  "noToken": {
+    "message":     "Log In to Experium HR-network",
+    "description": "You should be authorized to receive notifications."
+  },
+  "serverUrl": {
+    "message":     "Experium HR-network server",
+    "description": "Base url for Experium HR-network server."
+  },
+  "baseUrl": {
+    "message":     "Experium HR-network domain",
+    "description": "Base url for Experium HR-network main page."
+  },
+  "updateTimer": {
+    "message":     "Interval for counter update (in minutes)",
+    "description": "Amount of minutes for update notifications counter of Experium HR-network."
+  },
+  "showMessages": {
+    "message":     "Show system notifications",
+    "description": "System notifications about new vacancies and candidates for approval."
+  },
+  "saveButton": {
+    "message":     "Save",
+    "description": "Save option values of Experium HR-network extension."
+  },
+  "defaultsButton": {
+    "message":     "Default",
+    "description": "Set default option values of Experium HR-network extension."
+  },
+  "defaultsMessage": {
+    "message":     "Save defaults option values",
+    "description": "Save defaults option values message"
+  },
+  "saveMessage": {
+    "message":     "Options saved",
+    "description": "Experium HR-network extension options saved."
+  },
+  "validationMessage": {
+    "message":     "Invalid option values",
+    "description": "Entered option values is invalid for Experium HR-network extension."
+  }
 }
