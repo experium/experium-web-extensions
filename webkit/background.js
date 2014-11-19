@@ -12,14 +12,14 @@ var onClickRedirect = {};
 var typesConfig = {
     person: {
         link: "#/approval/person/",
-        query: "approval?inwork=1",
+        query: "approval?approved=0&canceled=0&inwork=1&rejected=0",
         notyText: function(data) {
             return chrome.i18n.getMessage("projectNew", [nameFilter(data,true), data.projectName]);
         }
     },
     project: {
         link: "#/approval/project/",
-        query: "approval/project?inwork=1",
+        query: "approval/project?approved=0&canceled=0&inwork=1&rejected=0",
         notyText: function(data) {
             return chrome.i18n.getMessage("projectNew", [data.position]);
         }

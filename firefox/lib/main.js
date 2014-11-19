@@ -84,12 +84,12 @@ function ExperiumBase() {
     this.typesConfig = {
         person: {
             link:  "approval/person/",
-            query: "approval?inwork=1",
+            query: "approval?approved=0&canceled=0&inwork=1&rejected=0",
             notyText: function(data) { return translate("personNew", nameFilter(data,true), data.projectName);}
         },
         project: {
             link:  "approval/project/",
-            query: "approval/project?inwork=1",
+            query: "approval/project?approved=0&canceled=0&inwork=1&rejected=0",
             notyText: function(data) { return translate("projectNew", data.position);}
         }
     };
