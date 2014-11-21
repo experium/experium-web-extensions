@@ -136,16 +136,14 @@ function updateIcon(noError) {
         chrome.browserAction.setTitle({
             title: chrome.i18n.getMessage("extTitle", [(parseInt(localStorage.personUnread) || "_"), (parseInt(localStorage.projectUnread) || "_")])
         });
-        var count = (parseInt(localStorage.personUnread) || "_") + " " + (parseInt(localStorage.projectUnread) || "_");
+
         chrome.browserAction.setIcon({
             path: activeIcon
         });
         chrome.browserAction.setBadgeBackgroundColor({
             color:colorBadge
         });
-        chrome.browserAction.setBadgeText({
-            text:  count  != 0 ? count.toString() : ""
-        });
+
     } else {
         chrome.browserAction.setIcon({
             path: secureIcon
@@ -156,10 +154,25 @@ function updateIcon(noError) {
         chrome.browserAction.setTitle({
             title: chrome.i18n.getMessage("noToken")
         });
+
+    }
+
+    if(localStorage.personUnread || localStorage.projectUnread ) {
+        var count = (parseInt(localStorage.personUnread) || "_") + " " + (parseInt(localStorage.projectUnread) || "_");
+        chrome.browserAction.setBadgeText({
+            text:  count
+        });
+    } else {
         chrome.browserAction.setBadgeText({
             text: "!"
         });
     }
+}
+
+function setSecure() {
+    chrome.browserAction.setBadgeText({
+        text: "!"
+    });
 }
 
 function startRequest(showAnimation) {
@@ -249,6 +262,7 @@ function checkToken(callback) {
                 localStorage.token = cookie.value;
             } else {
                 delete localStorage.token;
+                setSecure();
             }
             callback();
         });
@@ -404,7 +418,7 @@ function animateFlip() {
         setTimeout(animateFlip, animationSpeed);
     } else {
         rotation = 0;
-        updateIcon();
+        updateIcon(true);
     }
 }
 

@@ -15,7 +15,7 @@
         {
             "type": "integer",
             "name": "requestTimer",
-            "value": 5,
+            "value": 1,
             "title": "Experium Server Update"
         },
         {

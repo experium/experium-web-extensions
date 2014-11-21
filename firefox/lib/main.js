@@ -207,23 +207,31 @@ function showMessage(data, type, count) {
     }
 }
 
-function updateIcon(isSecure) {
-    if (isSecure) {
-        setActive();
+function updateIcon(isError) {
+    if (isError) {
+        setTitle(translate("loginReq"));
+        setSecureColor();
+    } else {
+        setActiveColor();
         setTitle(translate("title_message", Experium.getCount("person"), Experium.getCount("project")));
+    }
+
+    if (Experium.getCount("person") || Experium.getCount("project")) {
         setBadge((Experium.getCount("person") || '_') + ' ' + (Experium.getCount("project") || "_"));
     } else {
-        setBadge(secureBadge);
-        setTitle(translate("loginReq"));
         setSecure();
     }
 }
 
-function setActive() {
+function setSecure() {
+    setBadge(secureBadge);
+}
+
+function setActiveColor() {
     toolbarButton.type = "active";
 }
 
-function setSecure() {
+function setSecureColor() {
     toolbarButton.type = "secure";
 }
 
@@ -254,7 +262,8 @@ function checkToken() {
         store.token = "Token "+token;
         return true;
     } else {
-        return store.token;
+        updateIcon(true);
+        return false;
     }
 }
 
@@ -276,13 +285,13 @@ function startRequest(showLoadingAnimation) {
                 Experium.load = (Experium.load == 0)? 0: Experium.load-1;
                 Experium.setCount(type, count);
                 Experium.setLast(type, response);
-                updateIcon(true);
+                updateIcon(false);
             };
 
             var onError = function (type, isAuth) {
                 stopLoadingAnimation();
                 Experium.load = (Experium.load == 0)? 0: Experium.load-1;
-                updateIcon(isAuth);
+                updateIcon(true);
                 if (!isAuth && Experium.load == 0){
                     authCheck();
                 }
@@ -295,9 +304,8 @@ function startRequest(showLoadingAnimation) {
         timers.clearInterval(Experium.intervalId);
         Experium.intervalId = null;
         if (!Experium.cheking) {
-            //start new timer
             authCheck();
-            updateIcon(false);
+            updateIcon(true);
         }
     }
 }
@@ -327,7 +335,7 @@ function authCheck() {
     Experium.cheking = true;
     if (checkToken()) {
         Experium.cheking = false;
-        initRequest(true);
+        initRequest(false);
     } else {
         timers.setTimeout(authCheck, 3000);
     }
