@@ -31,7 +31,9 @@
   "title": "Experium Add-on",
   "id": "jid1-Djoid8yZzKsqlQ",
   "description": "Experium HR-network Add-on",
-  "author": "",
+  "icon": "data/icon_active.png",
+  "icon64": "data/icon_message.png",
+  "author": "Heliosoft",
   "license": "MPL 2.0",
   "version": "0.1"
 }

@@ -72,15 +72,17 @@ function ExperiumBase() {
     this.load       = 0;
     this.intervalId;
     this.cheking    = false;
+    this.messages = 0;
+
     this.counter    = {
         project: store.project || 0,
         person:  store.person || 0
     };
-    this.messages = 0;
     this.last = {
-        project: store.projectLast || 0,
-        person:  store.personLast || 0
+        project: store.projectLast || null,
+        person:  store.personLast || null
     };
+
     this.typesConfig = {
         person: {
             link:  "approval/person/",
@@ -105,9 +107,9 @@ ExperiumBase.prototype.getLast = function(type) {
 
 ExperiumBase.prototype.setLast = function(type, jsonObj) {
     var last = 0;
-    for (var key in jsonObj){
-        if (jsonObj.hasOwnProperty(key)){
-            if (this.last[type] && jsonObj[key].id > this.last[type]){
+    for (var key in jsonObj) {
+        if (jsonObj.hasOwnProperty(key)) {
+            if (this.last[type] != null && jsonObj[key].id > this.last[type]) {
                 showMessage(jsonObj[key], type, this.messages);
                 this.messages++;
             }
@@ -149,6 +151,25 @@ ExperiumBase.prototype.isUrl = function(url) {
 
 ExperiumBase.prototype.isCookie = function(url) {
     return prefs.baseUrl.indexOf(url) != -1;
+}
+
+ExperiumBase.prototype.resetStorage = function(isDelete) {
+    if (isDelete) {
+        delete store.token;
+        delete store.projectLast;
+        delete store.personLast;
+        delete store.project;
+        delete store.person;
+    }
+
+    this.counter    = {
+        project: store.project || 0,
+        person:  store.person || 0
+    };
+    this.last = {
+        project: store.projectLast || null,
+        person:  store.personLast || null
+    };
 }
 
 function toMinutes(timer) {
@@ -216,7 +237,7 @@ function updateIcon(isError) {
         setTitle(translate("title_message", Experium.getCount("person"), Experium.getCount("project")));
     }
 
-    if (Experium.getCount("person") || Experium.getCount("project")) {
+    if ( (Experium.getCount("person") || Experium.getCount("project")) && store.token) {
         setBadge((Experium.getCount("person") || '_') + ' ' + (Experium.getCount("project") || "_"));
     } else {
         setSecure();
@@ -262,6 +283,7 @@ function checkToken() {
         store.token = "Token "+token;
         return true;
     } else {
+        Experium.resetStorage(true);
         updateIcon(true);
         return false;
     }
@@ -291,10 +313,13 @@ function startRequest(showLoadingAnimation) {
             var onError = function (type, isAuth) {
                 stopLoadingAnimation();
                 Experium.load = (Experium.load == 0)? 0: Experium.load-1;
-                updateIcon(true);
-                if (!isAuth && Experium.load == 0){
+
+                if (!isAuth && Experium.load == 0) {
                     authCheck();
+                    Experium.resetStorage(true);
                 }
+
+                updateIcon(true);
             };
 
             getResponse(onSuccess, onError, 'project');
@@ -316,9 +341,9 @@ function getResponse(onSuccess, onError, type) {
             onSuccess(response.json.length, type, response.json);
         } else {
             if (response.status == 401 || response.status == 403)
-                onError(type,false);
+                onError(type, false);
             else
-                onError(type,true);
+                onError(type, true);
         }
     }
 
@@ -342,7 +367,7 @@ function authCheck() {
 }
 
 function initRequest(loading) {
-    if (!Experium.intervalId){
+    if (Experium.intervalId){
         timers.clearInterval(Experium.intervalId);
     }
     Experium.intervalId = timers.setInterval(startRequest, toMinutes(prefs.requestTimer));

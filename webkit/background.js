@@ -11,26 +11,26 @@ var canvasContext = canvas.getContext('2d');
 var onClickRedirect = {};
 var typesConfig = {
     person: {
-        link: "#/approval/person/",
-        query: "approval?approved=0&canceled=0&inwork=1&rejected=0",
+        link: '#/approval/person/',
+        query: 'approval?approved=0&canceled=0&inwork=1&rejected=0',
         notyText: function(data) {
-            return chrome.i18n.getMessage("projectNew", [nameFilter(data,true), data.projectName]);
+            return chrome.i18n.getMessage('projectNew', [nameFilter(data,true), data.projectName]);
         }
     },
     project: {
-        link: "#/approval/project/",
-        query: "approval/project?approved=0&canceled=0&inwork=1&rejected=0",
+        link: '#/approval/project/',
+        query: 'approval/project?approved=0&canceled=0&inwork=1&rejected=0',
         notyText: function(data) {
-            return chrome.i18n.getMessage("projectNew", [data.position]);
+            return chrome.i18n.getMessage('projectNew', [data.position]);
         }
     }
 };
 
-var activeIcon = "icon_active.png";
-var secureIcon = "icon_secure.png";
-var colorBadge = "#2598d5";
-var colorSecureBadge = "#bfbfbf";
-
+var activeIcon = 'icon_active.png';
+var secureIcon = 'icon_secure.png';
+var colorBadge = '#2598d5';
+var colorSecureBadge = '#bfbfbf';
+var secureBadge = ' ! ';
 function getExperiumUpdateTimer() {
     return (localStorage.updateTimer || config.updateTimer) * 60 * 1000;
 }
@@ -46,10 +46,6 @@ function getExperiumServerUrl() {
 function getExperiumShowMessages() {
     var checked = localStorage.showMessages || config.showMessages;
     return checked === 'true';
-}
-
-function getLastId() {
-    return localStorage.lastId;
 }
 
 function getUpdateUrl(type) {
@@ -73,7 +69,15 @@ function isExperiumUrl(url) {
 }
 
 function isExperiumNavigateUrl(url) {
-    return  url.indexOf(getExperiumUrl() + "#/approval/") == 0;
+    return  url.indexOf(getExperiumUrl() + '#/approval/') == 0;
+}
+
+function resetStorage() {
+    delete localStorage.personUnread;
+    delete localStorage.projectUnread;
+    delete localStorage.personUnreadLast;
+    delete localStorage.projectUnreadLast;
+    delete localStorage.token;
 }
 
 function LoadingAnimation() {
@@ -86,7 +90,7 @@ function LoadingAnimation() {
 LoadingAnimation.prototype.paintFrame = function() {
     var text = "";
     for (var i = 0; i < this.maxDot_; i++) {
-        text += (i == this.current_) ? "." : " ";
+        text += (i == this.current_) ? '.' : ' ';
     }
     if (this.current_ >= this.maxDot_)
         text += "";
@@ -134,16 +138,14 @@ function goToIndex() {
 function updateIcon(noError) {
     if (noError) {
         chrome.browserAction.setTitle({
-            title: chrome.i18n.getMessage("extTitle", [(parseInt(localStorage.personUnread) || "_"), (parseInt(localStorage.projectUnread) || "_")])
+            title: chrome.i18n.getMessage('extTitle', [(parseInt(localStorage.personUnread) || '_'), (parseInt(localStorage.projectUnread) || '_')])
         });
-
         chrome.browserAction.setIcon({
             path: activeIcon
         });
         chrome.browserAction.setBadgeBackgroundColor({
             color:colorBadge
         });
-
     } else {
         chrome.browserAction.setIcon({
             path: secureIcon
@@ -152,26 +154,24 @@ function updateIcon(noError) {
             color: colorSecureBadge
         });
         chrome.browserAction.setTitle({
-            title: chrome.i18n.getMessage("noToken")
+            title: chrome.i18n.getMessage('noToken')
         });
-
     }
 
-    if(localStorage.personUnread || localStorage.projectUnread ) {
-        var count = (parseInt(localStorage.personUnread) || "_") + " " + (parseInt(localStorage.projectUnread) || "_");
+
+    if ((localStorage.personUnread || localStorage.projectUnread ) && localStorage.token) {
+        var count = (parseInt(localStorage.personUnread) || '_') + ' ' + (parseInt(localStorage.projectUnread) || '_');
         chrome.browserAction.setBadgeText({
             text:  count
         });
     } else {
-        chrome.browserAction.setBadgeText({
-            text: "!"
-        });
+        setSecure();
     }
 }
 
 function setSecure() {
     chrome.browserAction.setBadgeText({
-        text: "!"
+        text: secureBadge
     });
 }
 
@@ -195,11 +195,6 @@ function startLoad(stopLoadingAnimation) {
                 updateUnreadCount(count, type);
                 updateUnreadLast(response, type);
                 localStorage.load = (localStorage.load == 0) ? 0 : localStorage.load - 1;
-
-                if(localStorage.load == 0) {
-                    restartTimer(getExperiumUpdateTimer());
-                }
-
                 updateIcon(true);
             };
 
@@ -207,13 +202,6 @@ function startLoad(stopLoadingAnimation) {
                 stopLoadingAnimation();
                 updateIcon(false);
                 localStorage.load = (localStorage.load == 0) ? 0 : localStorage.load - 1;
-                if (localStorage.load == 0) {
-                    if (isAuth && localStorage.load == 0) {
-                        restartTimer(requestTimer * ((localStorage.requestFailureCount > 10)? 10:localStorage.requestFailureCount));
-                    } else {
-                        restartTimer(requestTimer);
-                    }
-                }
             };
 
             localStorage.load = 2;
@@ -229,18 +217,10 @@ function startLoad(stopLoadingAnimation) {
     }
 }
 
-function restartTimer(time) {
-    if (localStorage.timeoutId) {
-        clearTimeout(localStorage.timeoutId);
-        delete localStorage.timeoutId;
-    }
-    localStorage.timeoutId = setTimeout(restartRequest, time);
-}
-
 function restartRequest() {
     if (localStorage.hasOwnProperty('token')) {
        delete localStorage.checking;
-        startRequest(true);
+        initRequest(true);
     } else {
         if (localStorage.timeoutId) {
             clearTimeout(localStorage.timeoutId);
@@ -257,11 +237,11 @@ function authCheck() {
 
 function checkToken(callback) {
     try {
-        chrome.cookies.get({url: getExperiumUrl(), name: "token"}, function (cookie) {
+        chrome.cookies.get({url: getExperiumUrl(), name: 'token'}, function (cookie) {
             if (cookie) {
                 localStorage.token = cookie.value;
             } else {
-                delete localStorage.token;
+                resetStorage();
                 setSecure();
             }
             callback();
@@ -301,10 +281,10 @@ function getInboxCount(onSuccess, onError, type) {
     var invokedErrorCallback = false;
     function handleError(status) {
         ++localStorage.requestFailureCount;
-        delete localStorage.token;
         var isAuth = true;
         if (status == 401 || status == 403) {
             isAuth = false;
+            resetStorage();
         }
 
         if (onError && !invokedErrorCallback) {
@@ -389,9 +369,9 @@ function showMessage(data, type) {
         if (getExperiumShowMessages() && chrome.notifications) {
             chrome.notifications.create(data.id.toString(),
                 {
-                    type:    "basic",
-                    iconUrl: "icon_message.png",
-                    title:   chrome.i18n.getMessage(""),
+                    type:    'basic',
+                    iconUrl: 'icon_message.png',
+                    title:   chrome.i18n.getMessage(''),
                     message: getTranslateMessage(type, data)
                 },
                 function (id) {
@@ -422,15 +402,25 @@ function animateFlip() {
     }
 }
 
+function initRequest(loading) {
+    if (localStorage.intervalId) {
+        clearTimeout(localStorage.intervalId);
+        delete localStorage.intervalId;
+    }
+
+    localStorage.intervalId = setTimeout(startRequest, getExperiumUpdateTimer());
+    startRequest(loading);
+}
+
 function onInit() {
     localStorage.requestFailureCount = 0;
     localStorage.load = 0;
     delete localStorage.checking;
     updateIcon(false);
-    startRequest(true);
+    initRequest(true);
 }
 
-onInit();
+onInit(true);
 
 var filters = {
     // TODO(aa): Cannot use urlPrefix because all the url fields lack the protocol
@@ -440,7 +430,7 @@ var filters = {
 
 function onNavigate(details) {
     if (details.url && isExperiumUrl(details.url)) {
-        startRequest(false);
+        initRequest(false);
     }
 }
 
