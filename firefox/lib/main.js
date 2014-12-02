@@ -315,7 +315,6 @@ function startRequest(showLoadingAnimation) {
                 Experium.load = (Experium.load == 0)? 0: Experium.load-1;
 
                 if (!isAuth && Experium.load == 0) {
-                    authCheck();
                     Experium.resetStorage(true);
                 }
 

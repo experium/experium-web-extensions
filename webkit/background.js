@@ -180,16 +180,18 @@ function startRequest(showAnimation) {
         if (showAnimation) loadingAnimation.stop();
     }
 
-    if (showAnimation) {
-        loadingAnimation.start();
+    function startLoadingAnimation() {
+        if (showAnimation) loadingAnimation.start();
     }
 
-    checkToken(startLoad.bind(null,stopLoadingAnimation));
+    checkToken(startLoad.bind(null, startLoadingAnimation, stopLoadingAnimation));
 }
 
-function startLoad(stopLoadingAnimation) {
+function startLoad(startLoadingAnimation, stopLoadingAnimation) {
     if (localStorage.hasOwnProperty('token')) {
         if (localStorage.load == 0) {
+            stopLoadingAnimation();
+            startLoadingAnimation();
             var onSuccess = function (count, type, response) {
                 stopLoadingAnimation();
                 updateUnreadCount(count, type);
