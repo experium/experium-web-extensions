@@ -237,7 +237,7 @@ function updateIcon(isError) {
         setTitle(translate("title_message", Experium.getCount("person"), Experium.getCount("project")));
     }
 
-    if ( (Experium.getCount("person") || Experium.getCount("project")) && store.token) {
+    if ( (Experium.getCount("person") >= 0 || Experium.getCount("project") >= 0) && store.token) {
         setBadge((Experium.getCount("person") || '_') + ' ' + (Experium.getCount("project") || "_"));
     } else {
         setSecure();

@@ -158,7 +158,6 @@ function updateIcon(noError) {
         });
     }
 
-
     if ((localStorage.personUnread || localStorage.projectUnread ) && localStorage.token) {
         var count = (parseInt(localStorage.personUnread) || '_') + ' ' + (parseInt(localStorage.projectUnread) || '_');
         chrome.browserAction.setBadgeText({
@@ -303,7 +302,7 @@ function getInboxCount(onSuccess, onError, type) {
             if (xhr.response) {
                 var response = JSON.parse(xhr.response);
 
-                if (response.length) {
+                if (response.length >= 0) {
                     handleSuccess(response.length, response);
                     return;
                 }
@@ -328,7 +327,7 @@ function updateUnreadCount(count, type) {
     if (localStorage.hasOwnProperty(type + 'Unread') && changed) {
         animateFlip();
     }
-
+    console.log(count);
     localStorage[type + 'Unread'] = count;
 }
 
