@@ -229,16 +229,19 @@ function showMessage(data, type, count) {
 }
 
 function updateIcon(isError) {
+    var count_person = Experium.getCount("person") || '_',
+        count_project = Experium.getCount("project") || "_";
+
     if (isError) {
         setTitle(translate("loginReq"));
         setSecureColor();
     } else {
         setActiveColor();
-        setTitle(translate("title_message", Experium.getCount("person"), Experium.getCount("project")));
+        setTitle(translate("title_message", count_person.toString(), count_project.toString()));
     }
 
-    if ( (Experium.getCount("person") >= 0 || Experium.getCount("project") >= 0) && store.token) {
-        setBadge((Experium.getCount("person") || '_') + ' ' + (Experium.getCount("project") || "_"));
+    if ((Experium.getCount("person") >= 0 || Experium.getCount("project") >= 0) && store.token) {
+        setBadge(count_person + ' ' + count_project);
     } else {
         setSecure();
     }
