@@ -327,7 +327,6 @@ function updateUnreadCount(count, type) {
     if (localStorage.hasOwnProperty(type + 'Unread') && changed) {
         animateFlip();
     }
-    console.log(count);
     localStorage[type + 'Unread'] = count;
 }
 
@@ -405,11 +404,11 @@ function animateFlip() {
 
 function initRequest(loading) {
     if (localStorage.intervalId) {
-        clearTimeout(localStorage.intervalId);
+        clearInterval(localStorage.intervalId);
         delete localStorage.intervalId;
     }
 
-    localStorage.intervalId = setTimeout(startRequest, getExperiumUpdateTimer());
+    localStorage.intervalId = setInterval(startRequest, getExperiumUpdateTimer());
     startRequest(loading);
 }
 
